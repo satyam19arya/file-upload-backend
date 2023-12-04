@@ -4,6 +4,7 @@ const dbConnect = require('./dbConnect');
 const morgan = require('morgan');
 const cloudinary = require('cloudinary').v2;
 const fileupload = require('express-fileupload');
+const fileRoute = require('./routes/fileRoute');
 dotenv.config('./.env');
 const app = express();
 
@@ -15,9 +16,7 @@ cloudinary.config({
 
 app.use(express.json({ limit: "5mb" }));
 app.use(morgan('common'));
-app.use(fileupload({
-    useTempFiles: true
-}));
+app.use(fileupload());
 
 const PORT = process.env.PORT;
 dbConnect();
@@ -25,6 +24,8 @@ dbConnect();
 app.get('/', (req, res) => {
     res.send('Hello from server 😎');
 });
+
+app.use('/api/upload', fileRoute);
 
 app.listen(PORT, () => {
     console.log(`listening on port: ${PORT}`);
