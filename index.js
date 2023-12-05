@@ -16,7 +16,10 @@ cloudinary.config({
 
 app.use(express.json({ limit: "5mb" }));
 app.use(morgan('common'));
-app.use(fileupload());
+app.use(fileupload({
+    useTempFiles: true,
+    tempFileDir: '/tmp/'
+}));
 
 const PORT = process.env.PORT;
 dbConnect();

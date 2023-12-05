@@ -29,7 +29,7 @@ const localFileUpload = async (req, res) => {
                 filePath: path
             });
         })
-    } catch (error) {
+    } catch(error){
         res.status(500).send({
             message: 'Error uploading file',
         });
@@ -37,6 +37,61 @@ const localFileUpload = async (req, res) => {
     }
 }
 
+const imageUpload = async (req, res) => {
+    try{
+        const {name, tags, email} = req.body;
+        const file = req.files.file;
+
+        if(!name || !tags || !email) {
+            return res.status(400).send({
+                message: 'Please fill all fields'
+            });
+        }
+
+        // Validation
+        const supportedTypes = ["jpg", "jpeg", "png"];
+        const fileType = file.name.split('.')[1].toLowerCase();
+        if(!supportedTypes.includes(fileType)) {
+            return res.status(400).send({
+                message: 'File type not supported'
+            });
+        }
+
+        if(file.size > 1024 * 1024 * 5) {
+            return res.status(400).send({
+                message: 'File size too large'
+            });
+        }
+
+        // Upload to cloudinary
+        const uploadedImage = await cloudinary.uploader.upload(file.tempFilePath, {
+            folder: 'FileUpload',            
+        });
+
+        // Save to database
+        const newFile = new File({
+            name,
+            tags,
+            email,
+            imageUrl: uploadedImage.secure_url,
+        });
+
+        await newFile.save();
+
+        res.status(200).json({
+            message: 'Image uploaded successfully',
+            image: uploadedImage.secure_url
+        });
+
+    } catch(error){
+        res.status(500).send({
+            message: 'Error uploading image',
+        });
+        console.error(error);
+    }
+}
+
 module.exports = {
-    localFileUpload
+    localFileUpload,
+    imageUpload
 };
